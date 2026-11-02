@@ -1,5 +1,5 @@
-// Naikkan angka versi ini setiap kali kamu mengubah index.html agar HP mengambil versi baru.
-const V = 'musikku-v2';
+// Versi cache. Aku (Claude) yang menaikkan angka ini setiap ada perubahan.
+const V = 'musikku-v3';
 const ASSETS = ['./', 'index.html', 'manifest.json', 'icons/icon-192.png', 'icons/icon-512.png'];
 
 self.addEventListener('install', e => {
@@ -11,10 +11,13 @@ self.addEventListener('activate', e => {
       .then(() => self.clients.claim())
   );
 });
-// Cache dulu: setelah terpasang, aplikasi tidak butuh internet sama sekali.
+// Online: ambil versi terbaru lalu simpan ke cache. Offline: pakai cache.
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
   e.respondWith(
-    caches.match(e.request, { ignoreSearch: true }).then(r => r || fetch(e.request).catch(() => caches.match('index.html')))
+    fetch(e.request).then(res => {
+      if (res && res.ok) { const copy = res.clone(); caches.open(V).then(c => c.put(e.request, copy)); }
+      return res;
+    }).catch(() => caches.match(e.request, { ignoreSearch: true }).then(r => r || caches.match('index.html')))
   );
 });
