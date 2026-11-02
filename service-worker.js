@@ -1,9 +1,14 @@
 // Versi cache. Aku (Claude) yang menaikkan angka ini setiap ada perubahan.
-const V = 'musikku-v3';
-const ASSETS = ['./', 'index.html', 'manifest.json', 'icons/icon-192.png', 'icons/icon-512.png'];
+const V = 'musikku-v4';
+const ASSETS = ['./', 'index.html', 'manifest.json', 'icon-192.png', 'icon-512.png'];
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(V).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));
+  // Satu file gagal diambil tidak boleh membatalkan seluruh pemasangan.
+  e.waitUntil(
+    caches.open(V)
+      .then(c => Promise.all(ASSETS.map(a => c.add(a).catch(() => {}))))
+      .then(() => self.skipWaiting())
+  );
 });
 self.addEventListener('activate', e => {
   e.waitUntil(
